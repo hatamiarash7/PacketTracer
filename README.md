@@ -1,4 +1,4 @@
-# Packet Tracer
+# Packet Tracer ( Beta )
 
 The low-level packet tracer library for Python
 
@@ -150,11 +150,11 @@ ictor.stop()
 ## Installation
 Some examples:
 - Clone newest version
-  - git clone https://github.com/hatamiarash7/PacketTracer.git
-  - cd packetracer
-  - python setup.py install
+  - ```git clone https://github.com/hatamiarash7/PacketTracer.git```
+  - ```cd packetracer```
+  - ```python setup.py install```
 - Use pip (synched to master on major version changes)
-  - pip install packetracer
+  - ```pip install packetracer```
 
 ## Usage examples
 See examples/ and tests/test_packetracer.py.
@@ -164,12 +164,12 @@ Tests are executed as follows:
 
 1) Add packetracer directory to the PYTHONPATH.
 
-- cd packetracer
-- export PYTHONPATH=$(pwd):$PYTHONPATH
+- ```cd packetracer```
+- ```export PYTHONPATH=$(pwd):$PYTHONPATH```
 
 2) execute tests
 
-- python tests/test_packetracer.py
+- ```python tests/test_packetracer.py```
 
 **Performance test results: packetracer**
 ```
