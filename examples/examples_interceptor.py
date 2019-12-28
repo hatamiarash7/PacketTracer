@@ -26,7 +26,7 @@ def verdict_cb(ll_data, ll_proto_id, data, ctx):
 	if echo1 is None:
 		return data, interceptor.NF_ACCEPT
 
-	pp_bts = b"PYPACKER"
+	pp_bts = b"PACKETRACER"
 	print("changing ICMP echo request packet")
 	echo1.body_bytes = echo1.body_bytes[:len(pp_bts)] + pp_bts
 	return ip1.bin(), interceptor.NF_ACCEPT
