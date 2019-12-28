@@ -1,0 +1,57 @@
+python-targets:
+    - 3
+doc-warnings: no
+test-warnings: no
+strictness: veryhigh
+max-line-length: 120
+autodetect: yes
+ignore-paths:
+    - doc
+ignore-patterns:
+    - doc_.*
+pyflakes:
+  disable:
+    # F821: undefined name; caught better by pylint, where it can be
+    # controlled for the whole file/per-line
+    - F821
+    # F401: unused import; same story
+    - F401
+    # F811: redefined function; same story
+    - F811
+    # wildcard import; same story
+    - F403
+    - F999
+pylint:
+  disable:
+    - eval-used
+    - bad-continuation
+    - bad-whitespace
+    - missing-docstring
+    - too-many-arguments
+    - invalid-name
+    - bare-except
+    - protected-access
+    - unidiomatic-typecheck
+    - no-self-use
+    - too-many-instance-attributes
+    - too-few-public-methods
+    - redefined-variable-type
+    - broad-except
+    - no-member
+    - undefined-variable
+    - attribute-defined-outside-init
+    - wildcard-import
+    - unused-wildcard-import
+    - unnecessary-lambda
+    - len-as-condition
+    - fixme
+    - bad-mcs-class method-argument
+  options:
+    indent-string: \t
+    max-line-length: 120
+pep8:
+  disable:
+    - W191
+    - E128
+    - E223
+    - E265

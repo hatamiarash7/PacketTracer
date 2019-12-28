@@ -1,0 +1,142 @@
+"""
+User Datagram Protocol (UDP)
+
+RFC 768 - User Datagram Protocol
+RFC 2460 - Internet Protocol, Version 6 (IPv6) Specification
+RFC 2675 - IPv6 Jumbograms
+RFC 4113 - Management Information Base for the UDP
+RFC 5405 - Unicast UDP Usage Guidelines for Application Designers
+"""
+import logging
+import struct
+
+from packetracer import packetracer, checksum
+from packetracer.packetracer import FIELD_FLAG_AUTOUPDATE, FIELD_FLAG_IS_TYPEFIELD
+# handler
+from packetracer.layer567 import telnet, tftp, dns, dhcp, iso15118, ntp, rtp, sip, pmap, radius, stun
+from packetracer.structcbs import unpack_H, pack_ipv4_header, pack_ipv6_header
+
+# avoid references for performance reasons
+in_cksum = checksum.in_cksum
+
+logger = logging.getLogger("packetracer")
+
+UDP_PORT_MAX	= 65535
+
+
+UDP_PROTO_TELNET	= 23
+UDP_PROTO_DNS		= (53, 5353)
+UDP_PROTO_DHCP		= (67, 68)
+UDP_PROTO_TFTP		= 69
+UDP_PROTO_PMAP		= 111
+UDP_PROTO_NTP		= 123
+UDP_PROTO_RADIUS	= (1812, 1813, 1645, 1646)
+UDP_PROTO_STUN		= 3478
+UDP_PROTO_RTP		= (5004, 5005)
+UDP_PROTO_SIP		= (5060, 5061)
+UDP_PROTO_ISO15118	= 15118
+
+
+class UDP(packetracer.Packet):
+	__hdr__ = (
+		("sport", "H", 0xDEAD),
+		("dport", "H", 0, FIELD_FLAG_AUTOUPDATE | FIELD_FLAG_IS_TYPEFIELD),
+		("ulen", "H", 8, FIELD_FLAG_AUTOUPDATE),  # header + body, min 8
+		("sum", "H", 0, FIELD_FLAG_AUTOUPDATE)
+	)
+
+	__handler__ = {
+		UDP_PROTO_TELNET: telnet.Telnet,
+		UDP_PROTO_TFTP: tftp.TFTP,
+		UDP_PROTO_DNS: dns.DNS,
+		UDP_PROTO_DHCP: dhcp.DHCP,
+		UDP_PROTO_ISO15118: iso15118.SDP,
+		UDP_PROTO_PMAP: pmap.Pmap,
+		UDP_PROTO_NTP: ntp.NTP,
+		UDP_PROTO_RADIUS: radius.Radius,
+		UDP_PROTO_RTP: rtp.RTP,
+		UDP_PROTO_SIP: sip.SIP,
+		UDP_PROTO_STUN: stun.STUN
+	}
+
+	def _update_fields(self):
+		# UDP-checksum needs to be updated on one of the following:
+		# - this layer itself or any upper layer changed
+		# - changes to the IP-pseudoheader
+		# There is no update on user-set checksums.
+		#changed = self._changed()
+		update = True
+
+		if self.ulen_au_active:
+			self.ulen = len(self)
+
+		#self._update_higherlayer_id()
+
+		try:
+			# changes to IP-layer, don't mind if this isn't IP
+			if not self._lower_layer._header_changed:
+				# lower layer doesn't need update, check for changes in present and upper layer
+				# logger.debug("lower layer did NOT change!")
+				update = True
+		except AttributeError:
+			# assume not an IP packet: we can't calculate the checksum
+			update = False
+
+		if update and self.sum_au_active:
+			self._calc_sum()
+
+	def _dissect(self, buf):
+		ports = [unpack_H(buf[0:2])[0], unpack_H(buf[2:4])[0]]
+
+		try:
+			# source or destination port should match
+			htype = [x for x in ports if x in packetracer.Packet._id_handlerclass_dct[UDP]][0]
+			self._init_handler(htype, buf[8:])
+		except:
+			# no type found
+			# logger.debug("could not parse type: %d because: %s" % (type, e))
+			pass
+		return 8
+
+	def _calc_sum(self):
+		"""Recalculate the UDP-checksum."""
+		# TCP and underwriting are freaky bitches: we need the IP pseudoheader to calculate their checksum
+		# logger.debug("UDP sum recalc, sport=%s/dport=%s" % (self.sport, self.dport))
+		try:
+			# we need src/dst for checksum-calculation
+			src, dst = self._lower_layer.src, self._lower_layer.dst
+			#logger.debug(src + b" / "+ dst)
+			self.sum = 0
+			udp_bin = self.header_bytes + self.body_bytes
+
+			# IP-pseudoheader, check if version 4 or 6
+			if len(src) == 4:
+				s = pack_ipv4_header(src, dst, 17, len(udp_bin))  # 17 = UDP
+			else:
+				s = pack_ipv6_header(src, dst, 17, len(udp_bin))  # 17 = UDP
+
+			csum = in_cksum(s + udp_bin)
+
+			if csum == 0:
+				csum = 0xFFFF    # RFC 768, p2
+
+			# get the checksum of concatenated pseudoheader+TCP packet
+			# assign via non-shadowed variable to trigger re-packing
+			self.sum = csum
+		except (AttributeError, struct.error):
+			# not an IP packet as lower layer (src, dst not present) or invalid src/dst
+			pass
+
+	def direction(self, other):
+		direction = 0
+		# logger.debug("checking direction: %s<->%s" % (self, other))
+		if self.sport == other.sport and self.dport == other.dport:
+			direction = packetracer.Packet.DIR_SAME
+		if self.sport == other.dport and self.dport == other.sport:
+			direction = packetracer.Packet.DIR_REV
+		if direction == 0:
+			return packetracer.Packet.DIR_UNKNOWN
+		return direction
+
+	def reverse_address(self):
+		self.sport, self.dport = self.dport, self.sport
