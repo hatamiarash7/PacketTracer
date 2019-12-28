@@ -150,7 +150,7 @@ ictor.stop()
 ## Installation
 Some examples:
 - Clone newest version
-  - git clone https://github.com/hatamiarash7/packetracer.git
+  - git clone https://github.com/hatamiarash7/PacketTracer.git
   - cd packetracer
   - python setup.py install
 - Use pip (synched to master on major version changes)
