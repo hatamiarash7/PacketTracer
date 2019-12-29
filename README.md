@@ -226,8 +226,8 @@ orC = 12431 p/s
 orC2 = 726 p/s
 ```
 
-# Usage hints
-## Performance related
+## Usage hints
+### Performance related
 - For maxmimum performance start accessing attributes at lowest level e.g. for filtering:
 ```
 # This will lazy parse only needed layers behind the scenes
@@ -283,7 +283,7 @@ sysctl -w net.ipv4.tcp_timestamps=1
 sysctl -w net.ipv4.tcp_sack=1
 ```
 
-## Misc related
+### Misc related
 - Assemblation of TCP/UDP streams can be done by tshark using pipes
 	with "-i -" and "-z follow,prot,mode,filter[,range]"
 
