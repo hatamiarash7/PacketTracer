@@ -1,4 +1,5 @@
 .idea
 *.pyc
+*.pcapng_tmp
 dist
 packetracer.egg-info
