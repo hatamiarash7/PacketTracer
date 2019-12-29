@@ -1,7 +1,5 @@
 import time
-import threading
 
-from packetracer.layer3 import ip
 from packetracer import tuntap
 
 ip_src = "192.168.1.123"
@@ -11,7 +9,7 @@ lt = tuntap.LocalTunnel(ip_iface_A=ip_src, ip_iface_B=ip_dst)
 lt.set_state(True)
 
 try:
-	time.sleep(9999)
+    time.sleep(9999)
 except:
-	pass
+    pass
 lt.set_state(False)

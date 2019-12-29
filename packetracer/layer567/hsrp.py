@@ -17,15 +17,15 @@ ACTIVE = 0x10
 
 
 class HSRP(packetracer.Packet):
-	__hdr__ = (
-		("version", "B", 0),
-		("opcode", "B", 0),
-		("state", "B", 0),
-		("hello", "B", 0),
-		("hold", "B", 0),
-		("priority", "B", 0),
-		("group", "B", 0),
-		("rsvd", "B", 0),
-		("auth", "8s", b"cisco"),
-		("vip", "4s", b"")
-	)
+    __hdr__ = (
+        ("version", "B", 0),
+        ("opcode", "B", 0),
+        ("state", "B", 0),
+        ("hello", "B", 0),
+        ("hold", "B", 0),
+        ("priority", "B", 0),
+        ("group", "B", 0),
+        ("rsvd", "B", 0),
+        ("auth", "8s", b"cisco"),
+        ("vip", "4s", b"")
+    )

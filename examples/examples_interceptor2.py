@@ -25,28 +25,28 @@ from packetracer.layer12 import ethernet
 from packetracer.layer3 import ip, ip6
 
 id_class = {
-	ethernet.ETH_TYPE_IP: ip.IP,
-	ethernet.ETH_TYPE_IP6: ip6.IP6
+    ethernet.ETH_TYPE_IP: ip.IP,
+    ethernet.ETH_TYPE_IP6: ip6.IP6
 }
 
 
 def verdict_cb(ll_data, ll_proto_id, data, ctx):
-	clz = id_class.get(ll_proto_id, None)
+    clz = id_class.get(ll_proto_id, None)
 
-	if clz is not None:
-		pkt = clz(data)
-		print("Got a packet: %s" % pkt.__class__)
-	else:
-		print("Unknown NW layer proto: %X" % ll_proto_id)
+    if clz is not None:
+        pkt = clz(data)
+        print("Got a packet: %s" % pkt.__class__)
+    else:
+        print("Unknown NW layer proto: %X" % ll_proto_id)
 
-	return data, interceptor.NF_ACCEPT
+    return data, interceptor.NF_ACCEPT
 
 
 ictor = interceptor.Interceptor()
 ictor.start(verdict_cb, queue_ids=[0, 1, 2, 3])
 
 try:
-	time.sleep(999)
+    time.sleep(999)
 except KeyboardInterrupt:
-	pass
+    pass
 ictor.stop()

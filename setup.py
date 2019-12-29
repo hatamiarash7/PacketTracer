@@ -6,7 +6,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name="packetracer",
-      version="1.0",
+      version="1.1",
       author="Arash Hatami",
       author_email="hatamiarash7@gmail.com",
       url="https://github.com/hatamiarash7/PacketTracer",

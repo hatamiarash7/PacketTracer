@@ -8,13 +8,13 @@ Requirements:
 """
 import ctypes
 import errno
-import threading
 import logging
 import socket
+import threading
+from collections import namedtuple
+from ctypes import util as utils
 from socket import htons, ntohl, ntohs
 from socket import timeout as socket_timeout
-from ctypes import util as utils
-from collections import namedtuple
 
 logger = logging.getLogger("packetracer")
 
@@ -23,83 +23,83 @@ MSG_NO_NFQUEUE = "Could not load netfilter_queue library. See README.md for inte
 netfilter = None
 
 try:
-	# load library
-	nflib = utils.find_library("netfilter_queue")
+    # load library
+    nflib = utils.find_library("netfilter_queue")
 
-	if nflib is None:
-		raise RuntimeError()
+    if nflib is None:
+        raise RuntimeError()
 
-	netfilter = ctypes.cdll.LoadLibrary(nflib)
+    netfilter = ctypes.cdll.LoadLibrary(nflib)
 except:
-	logger.warning(MSG_NO_NFQUEUE)
+    logger.warning(MSG_NO_NFQUEUE)
 
 
 class NfqQHandler(ctypes.Structure):
-	pass
+    pass
 
 
 class NfnlHandle(ctypes.Structure):
-	pass
+    pass
 
 
 nfnl_callback_ctype = ctypes.CFUNCTYPE(
-	ctypes.c_int, *(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
+    ctypes.c_int, *(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
 )
 
 
 class NfnlCallback(ctypes.Structure):
-	_fileds_ = [("call", nfnl_callback_ctype),
-		("data", ctypes.c_void_p),
-		("attr_count", ctypes.c_uint16)
-	]
+    _fileds_ = [("call", nfnl_callback_ctype),
+                ("data", ctypes.c_void_p),
+                ("attr_count", ctypes.c_uint16)
+                ]
 
 
 class NfnlSubsysHandle(ctypes.Structure):
-	_fields_ = [("nfilter_handler", ctypes.POINTER(NfnlHandle)),
-		("subscriptions", ctypes.c_uint32),
-		("subsys_id", ctypes.c_uint8),
-		("cb_count", ctypes.c_uint8),
-		("callback", ctypes.POINTER(NfnlCallback))
-	]
+    _fields_ = [("nfilter_handler", ctypes.POINTER(NfnlHandle)),
+                ("subscriptions", ctypes.c_uint32),
+                ("subsys_id", ctypes.c_uint8),
+                ("cb_count", ctypes.c_uint8),
+                ("callback", ctypes.POINTER(NfnlCallback))
+                ]
 
 
 class NfqHandle(ctypes.Structure):
-	_fields_ = [("nfnlh", ctypes.POINTER(NfnlHandle)),
-		("nfnlssh", ctypes.POINTER(NfnlSubsysHandle)),
-		("qh_list", ctypes.POINTER(NfqQHandler))
-	]
+    _fields_ = [("nfnlh", ctypes.POINTER(NfnlHandle)),
+                ("nfnlssh", ctypes.POINTER(NfnlSubsysHandle)),
+                ("qh_list", ctypes.POINTER(NfqQHandler))
+                ]
 
 
 class NfqQHandle(ctypes.Structure):
-	_fields_ = [("next", ctypes.POINTER(NfqQHandler)),
-		("h", ctypes.POINTER(NfqHandle)),
-		("id", ctypes.c_uint16),
-		("cb", ctypes.POINTER(NfnlHandle)),
-		("data", ctypes.c_void_p)
-	]
+    _fields_ = [("next", ctypes.POINTER(NfqQHandler)),
+                ("h", ctypes.POINTER(NfqHandle)),
+                ("id", ctypes.c_uint16),
+                ("cb", ctypes.POINTER(NfnlHandle)),
+                ("data", ctypes.c_void_p)
+                ]
 
 
 class NfqData(ctypes.Structure):
-	_fields_ = [("data", ctypes.POINTER(ctypes.c_void_p))]
+    _fields_ = [("data", ctypes.POINTER(ctypes.c_void_p))]
 
 
 class NfqnlMsgPacketHw(ctypes.Structure):
-	_fields_ = [("hw_addrlen", ctypes.c_uint16),
-		("_pad", ctypes.c_uint16),
-		#############################
-		("hw_addr", ctypes.c_uint8 * 8)]
+    _fields_ = [("hw_addrlen", ctypes.c_uint16),
+                ("_pad", ctypes.c_uint16),
+                #############################
+                ("hw_addr", ctypes.c_uint8 * 8)]
 
 
 class NfqnlMsgPacketHdr(ctypes.Structure):
-	_fields_ = [("packet_id", ctypes.c_uint32),
-		("hw_protocol", ctypes.c_uint16),
-		("hook", ctypes.c_uint8)
-	]
+    _fields_ = [("packet_id", ctypes.c_uint32),
+                ("hw_protocol", ctypes.c_uint16),
+                ("hook", ctypes.c_uint8)
+                ]
 
 
 class Timeval(ctypes.Structure):
-	_fields_ = [("tv_sec", ctypes.c_long),
-		("tv_usec", ctypes.c_long)]
+    _fields_ = [("tv_sec", ctypes.c_long),
+                ("tv_usec", ctypes.c_long)]
 
 
 # Return netfilter netlink handler
@@ -188,14 +188,13 @@ NF_MAX_VERDICT = NF_STOP
 # NF_MAX_VERDICT -
 set_verdict = netfilter.nfq_set_verdict
 set_verdict.restype = ctypes.c_int
-set_verdict.argtypes = ctypes.POINTER(NfqQHandler), ctypes.c_uint32, ctypes.c_uint32,\
-	ctypes.c_uint32, ctypes.c_char_p
+set_verdict.argtypes = ctypes.POINTER(NfqQHandler), ctypes.c_uint32, ctypes.c_uint32, \
+                       ctypes.c_uint32, ctypes.c_char_p
 
 # Return the metaheader that wraps the packet.
 get_msg_packet_hdr = netfilter.nfq_get_msg_packet_hdr
 get_msg_packet_hdr.restype = ctypes.POINTER(NfqnlMsgPacketHdr)
 get_msg_packet_hdr.argtypes = ctypes.POINTER(NfqData),
-
 
 # Retrieves the hardware address associated with the given queued packet.
 # struct nfqnl_msg_packet_hw* nfq_get_packet_hw	(	struct nfq_data * 	nfad	 ) 	[read]
@@ -211,171 +210,171 @@ get_payload = netfilter.nfq_get_payload
 get_payload.restype = ctypes.c_int
 get_payload.argtypes = ctypes.POINTER(NfqData), ctypes.POINTER(ctypes.c_void_p)
 
-
 HANDLER = ctypes.CFUNCTYPE(
-	#(struct NfqQHandler *qh, struct nfgenmsg *nfmsg, struct NfqData *nfa, void *data)
-	None, *(ctypes.POINTER(NfqQHandler), ctypes.c_void_p, ctypes.POINTER(NfqData), ctypes.c_void_p)
+    # (struct NfqQHandler *qh, struct nfgenmsg *nfmsg, struct NfqData *nfa, void *data)
+    None, *(ctypes.POINTER(NfqQHandler), ctypes.c_void_p, ctypes.POINTER(NfqData), ctypes.c_void_p)
 )
 
 
 def get_full_payload(nfa, ptr_packet):
-	len_recv = get_payload(nfa, ctypes.byref(ptr_packet))
-	data = ctypes.string_at(ptr_packet, len_recv)
-	return len_recv, data
+    len_recv = get_payload(nfa, ctypes.byref(ptr_packet))
+    data = ctypes.string_at(ptr_packet, len_recv)
+    return len_recv, data
 
 
 class Interceptor(object):
-	"""
-	Packet interceptor. Allows MITM and filtering.
-	Example config for iptables:
-	iptables -I INPUT 1 -p icmp -j NFQUEUE --queue-balance 0:2
-	"""
-	QueueConfig = namedtuple("QueueConfig",
-		["queue", "queue_id", "nfq_handle", "nfq_socket", "verdictthread", "handler"])
+    """
+    Packet interceptor. Allows MITM and filtering.
+    Example config for iptables:
+    iptables -I INPUT 1 -p icmp -j NFQUEUE --queue-balance 0:2
+    """
+    QueueConfig = namedtuple("QueueConfig",
+                             ["queue", "queue_id", "nfq_handle", "nfq_socket", "verdictthread", "handler"])
 
-	def __init__(self, nfqueue_size=2048, rcvbufsiz=2048):
-		"""
-		nfqueue_size -- Sets the size of the queue in kernel. This fixes the maximum number of packets the
-			kernel will store before internally before dropping upcoming packets.
-		rcvbufsiz -- Sets the new size of the socket buffer. Use this setting to increase the socket buffer
-			size if your system is reporting ENOBUFS errors.
-		See: https://www.netfilter.org/projects/libnetfilter_queue/doxygen/
+    def __init__(self, nfqueue_size=2048, rcvbufsiz=2048):
+        """
+        nfqueue_size -- Sets the size of the queue in kernel. This fixes the maximum number of packets the
+            kernel will store before internally before dropping upcoming packets.
+        rcvbufsiz -- Sets the new size of the socket buffer. Use this setting to increase the socket buffer
+            size if your system is reporting ENOBUFS errors.
+        See: https://www.netfilter.org/projects/libnetfilter_queue/doxygen/
 
-		WARNING: Set nfqueue_size and rcvbufsiz to None (or lower values) if there are any problems on receiving
-		"""
-		self._netfilterqueue_configs = []
-		self._is_running = False
-		self._nfqueue_size = nfqueue_size
-		self._rcvbufsiz = rcvbufsiz
+        WARNING: Set nfqueue_size and rcvbufsiz to None (or lower values) if there are any problems on receiving
+        """
+        self._netfilterqueue_configs = []
+        self._is_running = False
+        self._nfqueue_size = nfqueue_size
+        self._rcvbufsiz = rcvbufsiz
 
-	@staticmethod
-	def verdict_trigger_cycler(recv, nfq_handle, obj):
-		try:
-			while obj._is_running:
-				try:
-					# max IP packet size = 65535 bytes
-					bts = recv(65535)
-				except socket_timeout:
-					continue
-				except OSError as e:
-					# Ignore ENOBUFS errors, we can't handle this anyway
-					# Alternative is to set NETLINK_NO_ENOBUFS socket option
-					if e.errno == errno.ENOBUFS:
-						#logger.debug("Droppin' a packet, consider increasing receive buffer")
-						continue
-					raise e
+    @staticmethod
+    def verdict_trigger_cycler(recv, nfq_handle, obj):
+        try:
+            while obj._is_running:
+                try:
+                    # max IP packet size = 65535 bytes
+                    bts = recv(65535)
+                except socket_timeout:
+                    continue
+                except OSError as e:
+                    # Ignore ENOBUFS errors, we can't handle this anyway
+                    # Alternative is to set NETLINK_NO_ENOBUFS socket option
+                    if e.errno == errno.ENOBUFS:
+                        # logger.debug("Droppin' a packet, consider increasing receive buffer")
+                        continue
+                    raise e
 
-				handle_packet(nfq_handle, bts, len(bts))
-		except OSError:
-			# eg "Bad file descriptor": started and nothing read yet
-			#logger.error(ex)
-			pass
-		except Exception as ex:
-			logger.error("Exception while reading: %r", ex)
-		#finally:
-		#	logger.debug("verdict_trigger_cycler finished, stopping Interceptor")
-		#	obj.stop()
+                handle_packet(nfq_handle, bts, len(bts))
+        except OSError:
+            # eg "Bad file descriptor": started and nothing read yet
+            # logger.error(ex)
+            pass
+        except Exception as ex:
+            logger.error("Exception while reading: %r", ex)
 
-	def _setup_queue(self, queue_id, ctx, verdict_callback):
-		def verdict_callback_ind(queue_handle, nfmsg, nfa, _data):
-			packet_ptr = ctypes.c_void_p(0)
+    # finally:
+    #	logger.debug("verdict_trigger_cycler finished, stopping Interceptor")
+    #	obj.stop()
 
-			# logger.debug("verdict cb for queue %d", queue_id)
-			pkg_hdr = get_msg_packet_hdr(nfa)
-			packet_id = ntohl(pkg_hdr.contents.packet_id)
-			linklayer_protoid = htons(pkg_hdr.contents.hw_protocol)
+    def _setup_queue(self, queue_id, ctx, verdict_callback):
+        def verdict_callback_ind(queue_handle, nfmsg, nfa, _data):
+            packet_ptr = ctypes.c_void_p(0)
 
-			len_recv, data = get_full_payload(nfa, packet_ptr)
+            # logger.debug("verdict cb for queue %d", queue_id)
+            pkg_hdr = get_msg_packet_hdr(nfa)
+            packet_id = ntohl(pkg_hdr.contents.packet_id)
+            linklayer_protoid = htons(pkg_hdr.contents.hw_protocol)
 
-			try:
-				hw_info = get_packet_hw(nfa).contents
-				hw_addrlen = ntohs(hw_info.hw_addrlen)
-				hw_addr = ctypes.string_at(hw_info.hw_addr, size=hw_addrlen)
-			except:
-				# hw address not always present, eg DHCP discover -> offer...
-				hw_addr = None
+            len_recv, data = get_full_payload(nfa, packet_ptr)
 
-			data_ret, verdict = data, NF_DROP
+            try:
+                hw_info = get_packet_hw(nfa).contents
+                hw_addrlen = ntohs(hw_info.hw_addrlen)
+                hw_addr = ctypes.string_at(hw_info.hw_addr, size=hw_addrlen)
+            except:
+                # hw address not always present, eg DHCP discover -> offer...
+                hw_addr = None
 
-			try:
-				data_ret, verdict = verdict_callback(hw_addr, linklayer_protoid, data, ctx)
-			except Exception as ex:
-				logger.warning("Verdict callback problem, packet will be dropped: %r", ex)
+            data_ret, verdict = data, NF_DROP
 
-			set_verdict(queue_handle, packet_id, verdict, len(data_ret), ctypes.c_char_p(data_ret))
+            try:
+                data_ret, verdict = verdict_callback(hw_addr, linklayer_protoid, data, ctx)
+            except Exception as ex:
+                logger.warning("Verdict callback problem, packet will be dropped: %r", ex)
 
-		nfq_handle = ll_open_queue()  # 2
+            set_verdict(queue_handle, packet_id, verdict, len(data_ret), ctypes.c_char_p(data_ret))
 
-		# This call is obsolete, Linux kernels from 3.8 onwards ignore it.
-		#unbind_pf(nfq_handle, socket.AF_INET)
-		#bind_pf(nfq_handle, socket.AF_INET)
+        nfq_handle = ll_open_queue()  # 2
 
-		c_handler = HANDLER(verdict_callback_ind)
-		queue = create_queue(nfq_handle, queue_id, c_handler, None)  # 1
+        # This call is obsolete, Linux kernels from 3.8 onwards ignore it.
+        # unbind_pf(nfq_handle, socket.AF_INET)
+        # bind_pf(nfq_handle, socket.AF_INET)
 
-		set_mode(queue, NFQNL_COPY_PACKET, 0xFFFF)
+        c_handler = HANDLER(verdict_callback_ind)
+        queue = create_queue(nfq_handle, queue_id, c_handler, None)  # 1
 
-		nf = nfnlh(nfq_handle)
-		fd = nfq_fd(nf)
-		# fd, family, sockettype
-		nfq_socket = socket.fromfd(fd, 0, 0)  # 3
+        set_mode(queue, NFQNL_COPY_PACKET, 0xFFFF)
 
-		if self._nfqueue_size is not None:
-			ret = set_queue_maxlen(queue, self._nfqueue_size)
-			if ret == -1:
-				logger.warning("Could not set queue_maxlen to %d", self._nfqueue_size)
+        nf = nfnlh(nfq_handle)
+        fd = nfq_fd(nf)
+        # fd, family, sockettype
+        nfq_socket = socket.fromfd(fd, 0, 0)  # 3
 
-		if self._rcvbufsiz is not None:
-			ret = nfnl_rcvbufsiz(nf, self._rcvbufsiz)
-			#logger.debug("Update rcvbufsiz: %d", ret)
+        if self._nfqueue_size is not None:
+            ret = set_queue_maxlen(queue, self._nfqueue_size)
+            if ret == -1:
+                logger.warning("Could not set queue_maxlen to %d", self._nfqueue_size)
 
-		# TODO: better solution to check for running state? close socket and raise exception does not work in stop()
-		nfq_socket.settimeout(1)
+        if self._rcvbufsiz is not None:
+            ret = nfnl_rcvbufsiz(nf, self._rcvbufsiz)
+        # logger.debug("Update rcvbufsiz: %d", ret)
 
-		thread = threading.Thread(
-			target=Interceptor.verdict_trigger_cycler,
-			args=[nfq_socket.recv, nfq_handle, self]
-		)
+        # TODO: better solution to check for running state? close socket and raise exception does not work in stop()
+        nfq_socket.settimeout(1)
 
-		thread.start()
+        thread = threading.Thread(
+            target=Interceptor.verdict_trigger_cycler,
+            args=[nfq_socket.recv, nfq_handle, self]
+        )
 
-		qconfig = Interceptor.QueueConfig(
-			queue=queue, queue_id=queue_id, nfq_handle=nfq_handle, nfq_socket=nfq_socket,
-			verdictthread=thread, handler=c_handler
-		)
-		self._netfilterqueue_configs.append(qconfig)
+        thread.start()
 
-	def start(self, verdict_callback, queue_ids, ctx=None):
-		"""
-		verdict_callback -- callback with this signature:
-			callback(data, ctx): data, verdict
-		queue_id -- id of the que placed using iptables
-		ctx -- context object given to verdict callback
-		"""
-		if self._is_running:
-			return
+        qconfig = Interceptor.QueueConfig(
+            queue=queue, queue_id=queue_id, nfq_handle=nfq_handle, nfq_socket=nfq_socket,
+            verdictthread=thread, handler=c_handler
+        )
+        self._netfilterqueue_configs.append(qconfig)
 
-		if queue_ids is None:
-			queue_ids = []
+    def start(self, verdict_callback, queue_ids, ctx=None):
+        """
+        verdict_callback -- callback with this signature:
+            callback(data, ctx): data, verdict
+        queue_id -- id of the que placed using iptables
+        ctx -- context object given to verdict callback
+        """
+        if self._is_running:
+            return
 
-		self._is_running = True
+        if queue_ids is None:
+            queue_ids = []
 
-		for queue_id in queue_ids:
-			# setup queue and start produces threads
-			self._setup_queue(queue_id, ctx, verdict_callback)
+        self._is_running = True
 
-	def stop(self):
-		if not self._is_running:
-			return
+        for queue_id in queue_ids:
+            # setup queue and start produces threads
+            self._setup_queue(queue_id, ctx, verdict_callback)
 
-		# logger.debug("stopping Interceptor")
-		self._is_running = False
+    def stop(self):
+        if not self._is_running:
+            return
 
-		for qconfig in self._netfilterqueue_configs:
-			destroy_queue(qconfig.queue)
-			close_queue(qconfig.nfq_handle)
-			qconfig.nfq_socket.close()
-			# logger.debug("joining verdict thread for queue %d", qconfig.queue_id)
-			qconfig.verdictthread.join()
+        # logger.debug("stopping Interceptor")
+        self._is_running = False
 
-		self._netfilterqueue_configs.clear()
+        for qconfig in self._netfilterqueue_configs:
+            destroy_queue(qconfig.queue)
+            close_queue(qconfig.nfq_handle)
+            qconfig.nfq_socket.close()
+            # logger.debug("joining verdict thread for queue %d", qconfig.queue_id)
+            qconfig.verdictthread.join()
+
+        self._netfilterqueue_configs.clear()

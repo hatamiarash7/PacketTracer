@@ -1,6 +1,6 @@
 """Trivial File Transfer Protocol (TFTP)"""
-import re
 import logging
+import re
 
 from packetracer.packetracer import Packet
 from packetracer.structcbs import unpack_H
@@ -32,27 +32,27 @@ ENOUSER = 7  # no such user
 
 
 class TFTP(Packet):
-	__hdr__ = (
-		("opcode", "H", OP_RRQ),
-		("file", None, None),
-		("block", "H", 0),
-		("ttype", None, None)
-	)
+    __hdr__ = (
+        ("opcode", "H", OP_RRQ),
+        ("file", None, None),
+        ("block", "H", 0),
+        ("ttype", None, None)
+    )
 
-	def _dissect(self, buf):
-		hlen = 2
-		opcode = unpack_H(buf[: 2])
-		# logger.debug("opcode: %d" % opcode)
+    def _dissect(self, buf):
+        hlen = 2
+        opcode = unpack_H(buf[: 2])
+        # logger.debug("opcode: %d" % opcode)
 
-		if opcode in OPCODES_DATA_ACK:
-			pass
-		elif opcode in OPCODES_READ_WRITE:
-			self.block = None
-			file, ttype = split_nullbyte(buf[2:], maxsplit=2)
-			# logger.debug("file/ttype = %r / %r" % (file, ttype))
-			self.file = file + b"\x00"
-			self.ttype = ttype + b"\x00"
-			hlen = 2 + len(self.file) + len(self.ttype)
-		elif opcode == OP_ERR:
-			pass
-		return hlen
+        if opcode in OPCODES_DATA_ACK:
+            pass
+        elif opcode in OPCODES_READ_WRITE:
+            self.block = None
+            file, ttype = split_nullbyte(buf[2:], maxsplit=2)
+            # logger.debug("file/ttype = %r / %r" % (file, ttype))
+            self.file = file + b"\x00"
+            self.ttype = ttype + b"\x00"
+            hlen = 2 + len(self.file) + len(self.ttype)
+        elif opcode == OP_ERR:
+            pass
+        return hlen

@@ -5,8 +5,8 @@ http://tools.ietf.org/html/rfc3489
 """
 import logging
 
-from packetracer.packetracer import Packet
 from packetracer import triggerlist
+from packetracer.packetracer import Packet
 from packetracer.structcbs import unpack_H
 
 logger = logging.getLogger("packetracer")
@@ -34,39 +34,39 @@ REFLECTED_FROM = 0x000B
 
 
 class StunAttr(Packet):
-	__hdr__ = (
-		("type", "H", 0),
-		("len", "H", 0),
-	)
+    __hdr__ = (
+        ("type", "H", 0),
+        ("len", "H", 0),
+    )
 
 
 class STUN(Packet):
-	# 20 byte header followed by 0 or more attribute TLVs.
-	__hdr__ = (
-		("type", "H", 0),
-		("len", "H", 0),
-		("cookie", "I", 0),
-		("xid", "12s", b"\x00" * 14),
-		("attrs", None, triggerlist.TriggerList)
-	)
+    # 20 byte header followed by 0 or more attribute TLVs.
+    __hdr__ = (
+        ("type", "H", 0),
+        ("len", "H", 0),
+        ("cookie", "I", 0),
+        ("xid", "12s", b"\x00" * 14),
+        ("attrs", None, triggerlist.TriggerList)
+    )
 
-	@staticmethod
-	def __parse_attrs(buf):
-		attributes = []
-		off = 0
+    @staticmethod
+    def __parse_attrs(buf):
+        attributes = []
+        off = 0
 
-		# t:2 l:2 v:x
-		while off < len(buf):
-			l_content = unpack_H(buf[off + 2: off + 4])[0]
-			padding = (4 - (l_content % 4)) % 4
-			l_total = l_content + padding + 2 + 2
-			#logger.debug("STUN attr l_content: %d, padding: %d, value: %s" %
-			#	 (l_content, padding, buf[off : off + l_total]))
-			attributes.append(StunAttr(buf[off: off + l_total]))
-			off += l_total
-		return attributes
+        # t:2 l:2 v:x
+        while off < len(buf):
+            l_content = unpack_H(buf[off + 2: off + 4])[0]
+            padding = (4 - (l_content % 4)) % 4
+            l_total = l_content + padding + 2 + 2
+            # logger.debug("STUN attr l_content: %d, padding: %d, value: %s" %
+            #	 (l_content, padding, buf[off : off + l_total]))
+            attributes.append(StunAttr(buf[off: off + l_total]))
+            off += l_total
+        return attributes
 
-	def _dissect(self, buf):
-		# logger.debug("dissecting: %s" % buf)
-		self._init_triggerlist("attrs", buf[20:], self.__parse_attrs)
-		return len(buf)
+    def _dissect(self, buf):
+        # logger.debug("dissecting: %s" % buf)
+        self._init_triggerlist("attrs", buf[20:], self.__parse_attrs)
+        return len(buf)
