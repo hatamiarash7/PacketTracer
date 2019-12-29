@@ -1,4 +1,5 @@
 ![banner](banner.jpg)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhatamiarash7%2FPacketTracer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhatamiarash7%2FPacketTracer?ref=badge_shield)
 
 # Packet Tracer ( Beta )
 
@@ -283,3 +284,7 @@ sysctl -w net.ipv4.tcp_sack=1
 ## Misc related
 - Assemblation of TCP/UDP streams can be done by tshark using pipes
 	with "-i -" and "-z follow,prot,mode,filter[,range]"
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhatamiarash7%2FPacketTracer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhatamiarash7%2FPacketTracer?ref=badge_large)
