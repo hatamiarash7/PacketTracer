@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
 try:
@@ -11,7 +12,7 @@ setup(name="packetracer",
       author_email="hatamiarash7@gmail.com",
       url="https://github.com/hatamiarash7/PacketTracer",
       description="Packet Tracer: The fast and simple packet creating and parsing module",
-      license="GPLv2",
+      license="MIT",
       packages=[
           "packetracer",
           "packetracer.layer12",
