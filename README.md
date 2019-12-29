@@ -47,7 +47,7 @@ layer3.icmp.Echo
         bodybytes   : b'foobar2'
 ```
 
-Read/write packets from/to file (pcap/tcpdump format):
+Read/write packets from/to file ( pcap/tcpdump format ). You can test with [Wireshark](https://www.wireshark.org/):
 
 ```python
 from packetracer import ppcap
@@ -148,7 +148,7 @@ ictor.stop()
   - libnetfilter_queue library (see http://www.netfilter.org/projects/libnetfilter_queue)
 
 ## Installation
-Some examples:
+There is two way :
 - Clone newest version
   - ```git clone https://github.com/hatamiarash7/PacketTracer.git```
   - ```cd packetracer```
