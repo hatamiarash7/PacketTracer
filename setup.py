@@ -23,7 +23,7 @@ setup(name="packetracer",
       classifiers=[
           "Development Status :: 6 - Mature",
           "Intended Audience :: Developers",
-          "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+          "License :: GNU General Public License v3.0 (GPLv3.0)",
           "Natural Language :: English",
           "Programming Language :: Python :: 3.3",
           "Programming Language :: Python :: 3.4",
@@ -32,8 +32,8 @@ setup(name="packetracer",
           "Programming Language :: Python :: Implementation :: CPython",
           "Programming Language :: Python :: Implementation :: PyPy"
       ],
-      # install_requires=[
-      #	"netifaces",
-      # ],
+      install_requires=[
+		  "netifaces",
+      ],
       python_requires=">=3.3.*"
       )
