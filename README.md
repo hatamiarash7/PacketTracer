@@ -290,3 +290,23 @@ sysctl -w net.ipv4.tcp_sack=1
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhatamiarash7%2FPacketTracer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhatamiarash7%2FPacketTracer?ref=badge_large)
+
+---
+
+## Support
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D1WGU9)
+
+<div><a href="https://payping.ir/@hatamiarash7"><img src="https://cdn.payping.ir/statics/Payping-logo/Trust/blue.svg" height="128" width="128"></a></div>
+
+## Contributing
+
+1. Fork it !
+2. Create your feature branch : `git checkout -b my-new-feature`
+3. Commit your changes : `git commit -am 'Add some feature'`
+4. Push to the branch : `git push origin my-new-feature`
+5. Submit a pull request :D
+
+## Issues
+
+Each project may have many problems. Contributing to the better development of this project by reporting them.
